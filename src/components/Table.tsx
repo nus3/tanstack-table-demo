@@ -1,12 +1,15 @@
 import {
+  SortingState,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
+import classes from "./Table.module.css";
+import { fetchSortedData } from "../fetchData";
 
-type Nus3Info = {
+export type Nus3Info = {
   id: string;
   name: string;
   creator: string;
@@ -54,24 +57,29 @@ const columns = [
     ),
   }),
   columnHelper.accessor("id", {
-    header: () => "ID",
+    header: "ID",
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("name", {
-    header: () => "名前",
+    header: "名前",
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("creator", {
-    header: () => "作成者",
+    header: "作成者",
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("createdAt", {
-    header: () => "作成日時",
+    header: "作成日時",
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor("description", {
-    header: () => "概要",
-    cell: (info) => info.getValue(),
+  columnHelper.display({
+    header: "概要",
+    id: "description",
+    cell: (info) => (
+      <span style={{ minWidth: "300px", display: "inline-block" }}>
+        {info.row.original.description}
+      </span>
+    ),
   }),
   columnHelper.display({
     id: "delete",
@@ -92,28 +100,59 @@ type TableProps = {
 };
 
 export const Table: FC<TableProps> = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, setData] = useState(() => [...defaultData]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  // useEffectを使わずにonSortingChangeの中でいい感じにできそうな気もする
+  useEffect(() => {
+    const handleChangeSort = async () => {
+      const data = await fetchSortedData(sorting);
+      setData(data);
+    };
+
+    // サーバーサイド側の時は、データを取得するまではloadingの表示をしたほうが良さそう
+    handleChangeSort();
+  }, [sorting]);
 
   const table = useReactTable({
     data,
     columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    debugTable: true,
+    manualSorting: true,
   });
 
   return (
-    <table>
+    <table className={classes.table}>
       <thead>
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
-              <th key={header.id}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(
+              <th key={header.id} className={classes.th}>
+                {header.isPlaceholder ? null : (
+                  <div
+                    className={
+                      header.column.getCanSort() ? classes.sortBtn : undefined
+                    }
+                    {...{
+                      onClick: header.column.getToggleSortingHandler(),
+                    }}
+                  >
+                    {flexRender(
                       header.column.columnDef.header,
                       header.getContext()
                     )}
+                    {{
+                      asc: " 🔼",
+                      desc: " 🔽",
+                    }[header.column.getIsSorted() as string] ?? null}
+                  </div>
+                )}
               </th>
             ))}
           </tr>
@@ -123,7 +162,7 @@ export const Table: FC<TableProps> = () => {
         {table.getRowModel().rows.map((row) => (
           <tr key={row.id}>
             {row.getVisibleCells().map((cell) => (
-              <td key={cell.id}>
+              <td key={cell.id} className={classes.td}>
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </td>
             ))}
