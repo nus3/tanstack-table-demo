@@ -18,3 +18,14 @@
 .sort-btn:hover {
   cursor: pointer;
 }
+
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.wrapper {
+  margin: 10px;
+}
