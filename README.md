@@ -28,3 +28,4 @@ If you are developing a production application, we recommend updating the config
 
 ## DEMO
 
+https://nus3.github.io/tanstack-table-demo/
