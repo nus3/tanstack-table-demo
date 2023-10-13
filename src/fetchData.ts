@@ -1,5 +1,5 @@
 import { PaginationState, SortingState } from "@tanstack/react-table";
-import { Nus3Info } from "./components/Table";
+import { Nus3Info } from "./components/DemoTable";
 
 export const fetchSortedData = async (sorting: SortingState) => {
   await new Promise((r) => setTimeout(r, 500));

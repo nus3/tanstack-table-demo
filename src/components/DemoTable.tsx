@@ -96,11 +96,11 @@ const columns = [
   }),
 ];
 
-type TableProps = {
+type DemoTableProps = {
   foo?: string;
 };
 
-export const Table: FC<TableProps> = () => {
+export const DemoTable: FC<DemoTableProps> = () => {
   const [data, setData] = useState(() => [...defaultData]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({

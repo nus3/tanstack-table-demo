@@ -1,10 +1,10 @@
-import { Table } from "./components/Table";
+import { DemoTable } from "./components/DemoTable";
 
 function App() {
   return (
     <>
       <h1>TanStack Table Demo</h1>
-      <Table></Table>
+      <DemoTable></DemoTable>
     </>
   );
 }
