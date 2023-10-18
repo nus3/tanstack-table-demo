@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { Table } from "./components/Table";
 import {
-  createColumnHelper,
-  useReactTable,
   PaginationState,
   SortingState,
-} from "./functions/table";
-import { fetchPaginationData, fetchSortedData } from "./fetchData";
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { FC, useEffect, useMemo, useState } from "react";
+import classes from "./Table.module.css";
+import { fetchPaginationData, fetchSortedData } from "../fetchData";
 
-type Nus3Info = {
+export type Nus3Info = {
   id: string;
   name: string;
   creator: string;
@@ -41,6 +43,7 @@ const defaultData: Nus3Info[] = [
 ];
 
 const columnHelper = createColumnHelper<Nus3Info>();
+
 const columns = [
   columnHelper.display({
     id: "edit",
@@ -93,7 +96,11 @@ const columns = [
   }),
 ];
 
-function App() {
+type DemoTableProps = {
+  foo?: string;
+};
+
+export const DemoTable: FC<DemoTableProps> = () => {
   const [data, setData] = useState(() => [...defaultData]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
@@ -143,23 +150,75 @@ function App() {
     pageCount: 3, // apiから取得する
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
     debugTable: true,
     manualSorting: true,
     manualPagination: true,
     enableMultiSort: false,
   });
 
-  return (
-    <>
-      <h1>TanStack Table Demo</h1>
-      <Table
-        table={table}
-        pageIndex={pageIndex}
-        pageSize={pageSize}
-        totalCount={totalCount}
-      />
-    </>
-  );
-}
+  const from = useMemo(() => pageIndex * pageSize + 1, [pageIndex, pageSize]);
+  const to = useMemo(() => from + pageSize - 1, [from, pageSize]);
 
-export default App;
+  return (
+    <div className={classes.wrapper}>
+      <div className={classes.pagination}>
+        {from} - {to} / {totalCount}件
+        <button
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          前へ
+        </button>
+        <button
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          次へ
+        </button>
+      </div>
+      <table className={classes.table}>
+        <thead>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th key={header.id} className={classes.th}>
+                  {header.isPlaceholder ? null : (
+                    <div
+                      className={
+                        header.column.getCanSort() ? classes.sortBtn : undefined
+                      }
+                      {...{
+                        onClick: header.column.getToggleSortingHandler(),
+                      }}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      {{
+                        asc: " 🔼",
+                        desc: " 🔽",
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </div>
+                  )}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className={classes.td}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
