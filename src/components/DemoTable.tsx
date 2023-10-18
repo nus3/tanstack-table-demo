@@ -73,12 +73,12 @@ const columns = [
     header: "作成日時",
     cell: (info) => info.getValue(),
   }),
-  columnHelper.display({
+  columnHelper.accessor("description", {
     header: "概要",
     id: "description",
     cell: (info) => (
       <span style={{ minWidth: "300px", display: "inline-block" }}>
-        {info.row.original.description}
+        {info.getValue()}
       </span>
     ),
   }),
@@ -154,6 +154,7 @@ export const DemoTable: FC<DemoTableProps> = () => {
     debugTable: true,
     manualSorting: true,
     manualPagination: true,
+    enableMultiSort: false,
   });
 
   const from = useMemo(() => pageIndex * pageSize + 1, [pageIndex, pageSize]);
